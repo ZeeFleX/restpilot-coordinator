@@ -1,8 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import {
-  ISignUpRequestDTO,
-  ICompanySignUpRequestDTO,
-  IUser,
+  AuthDTO,
+  AuthEntities,
+  CompaniesDTO,
+  CompaniesEntities,
 } from "src/types/shared";
 import { RabbitmqService } from "src/rabbitmq/rabbitmq.service";
 import { Observable, firstValueFrom } from "rxjs";
@@ -11,35 +12,28 @@ import { Observable, firstValueFrom } from "rxjs";
 export class AuthService {
   constructor(private readonly RMQ: RabbitmqService) {}
 
-  signUp(user: ISignUpRequestDTO): Observable<IUser> {
+  userCreate(
+    user: AuthDTO.Request.SignUp
+  ): Observable<AuthEntities.User> | any {
     try {
-      return this.RMQ.rpcSend("authService", "user.signUp", user);
+      return this.RMQ.rpcSend("authService", "auth.user.create", user);
     } catch (error) {
       console.log(error);
-      return error;
+      return {
+        error: "ОШИБКА",
+      };
     }
   }
 
-  async companySignUp({
-    phone,
-    password,
-    name,
-    address,
-  }: ICompanySignUpRequestDTO) {
+  companyCreate(
+    company: CompaniesDTO.Request.CreateCompany
+  ): Observable<CompaniesEntities.Company> {
     try {
-      const createdUser = await firstValueFrom(
-        this.signUp({
-          phone,
-          password,
-        })
+      return this.RMQ.rpcSend(
+        "companiesService",
+        "companies.company.create",
+        company
       );
-
-      console.log(createdUser);
-
-      return this.RMQ.rpcSend("companiesService", "company.create", {
-        name,
-        address,
-      });
     } catch (error) {
       console.log(error);
       return error;

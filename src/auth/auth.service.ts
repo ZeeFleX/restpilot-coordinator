@@ -4,7 +4,7 @@ import {
   AuthEntities,
   CompaniesDTO,
   CompaniesEntities,
-} from "src/types/shared";
+} from "shared-types";
 import { RabbitmqService } from "src/rabbitmq/rabbitmq.service";
 import { Observable, firstValueFrom } from "rxjs";
 

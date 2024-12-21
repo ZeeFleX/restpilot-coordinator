@@ -4,7 +4,7 @@ import {
   CompaniesDTO,
   AuthEntities,
   CompaniesEntities,
-} from "src/types/shared";
+} from "shared-types";
 import { AuthService } from "../auth.service";
 import { firstValueFrom } from "rxjs";
 import { RpcException } from "@nestjs/microservices";

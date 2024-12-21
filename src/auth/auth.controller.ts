@@ -1,7 +1,7 @@
 import { Controller } from "@nestjs/common";
 import { MessagePattern, Payload, RpcException } from "@nestjs/microservices";
 import { AuthService } from "./auth.service";
-import { AuthDTO } from "src/types/shared";
+import { AuthDTO } from "shared-types";
 import { CommandBus } from "@nestjs/cqrs";
 import { SagaInvocationError, SagaCompensationError } from "nestjs-saga";
 import { CompanySignUpCommand } from "./sagas";

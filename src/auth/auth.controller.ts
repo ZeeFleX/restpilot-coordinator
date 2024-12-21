@@ -1,10 +1,11 @@
 import { Controller } from "@nestjs/common";
-import { MessagePattern, Payload } from "@nestjs/microservices";
+import { MessagePattern, Payload, RpcException } from "@nestjs/microservices";
 import { AuthService } from "./auth.service";
 import { AuthDTO } from "src/types/shared";
 import { CommandBus } from "@nestjs/cqrs";
 import { SagaInvocationError, SagaCompensationError } from "nestjs-saga";
 import { CompanySignUpCommand } from "./sagas";
+import { firstValueFrom } from "rxjs";
 
 @Controller()
 export class AuthController {
@@ -21,20 +22,17 @@ export class AuthController {
   @MessagePattern("coordinator.company.signUp")
   async companySignUp(@Payload() company: AuthDTO.Request.CompanySignUp) {
     try {
-      const result = await this.commandBus.execute(
+      const commandResult = await this.commandBus.execute(
         new CompanySignUpCommand(company)
       );
-      return result;
-    } catch (error) {
-      if (
-        error instanceof SagaInvocationError ||
-        error instanceof SagaCompensationError
-      ) {
-        console.error("Saga error:", error.message);
-        throw error;
+
+      if (commandResult.error) {
+        throw new RpcException(commandResult.error);
       }
-      console.error("Unexpected error:", error);
-      throw error;
+
+      return commandResult;
+    } catch (error) {
+      return error.originalError || error;
     }
   }
 }

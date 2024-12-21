@@ -1,7 +1,13 @@
 import { Builder, Saga } from "nestjs-saga";
-import { AuthDTO, AuthEntities, CompaniesEntities } from "src/types/shared";
+import {
+  AuthDTO,
+  CompaniesDTO,
+  AuthEntities,
+  CompaniesEntities,
+} from "src/types/shared";
 import { AuthService } from "../auth.service";
 import { firstValueFrom } from "rxjs";
+import { RpcException } from "@nestjs/microservices";
 
 export class CompanySignUpCommand {
   constructor(public readonly data: AuthDTO.Request.CompanySignUp) {}
@@ -21,24 +27,34 @@ export class CompanySignUpSaga {
   constructor(private readonly service: AuthService) {}
 
   saga = new Builder<CompanySignUpCommand, SagaResult>()
-    .step("User and Company Registration")
+    .step("User Registration")
     .invoke(async (cmd: CompanySignUpCommand) => {
       const { phone, password } = cmd.data;
-      this.result.user = await firstValueFrom(
+      const createUserResponse: AuthDTO.Response.SignUp = await firstValueFrom(
         this.service.userCreate({ phone, password })
       );
 
-      console.log(this.result);
+      if (createUserResponse.error) {
+        throw new RpcException(createUserResponse.error);
+      }
+
+      this.result.user = createUserResponse;
+    })
+    .withCompensation(() => {
+      this.service.userDelete({ id: this.result.user.id });
     })
     .step("Company Registration")
     .invoke(async (cmd: CompanySignUpCommand) => {
       const { name, address } = cmd.data;
-      this.result.company = await firstValueFrom(
-        this.service.companyCreate({ name, address })
-      );
-    })
-    .withCompensation(() => {
-      console.log("Компенсация регистрации пользователя и компании");
+
+      const createCompanyResponse: CompaniesDTO.Response.CreateCompany =
+        await firstValueFrom(this.service.companyCreate({ name, address }));
+
+      if (createCompanyResponse.error) {
+        throw new RpcException(createCompanyResponse.error);
+      }
+
+      this.result.company = createCompanyResponse;
     })
     .return(() => {
       return this.result;

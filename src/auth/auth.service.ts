@@ -25,6 +25,20 @@ export class AuthService {
     }
   }
 
+  async userDelete(
+    user: AuthDTO.Request.UserDelete
+  ): Promise<AuthEntities.User> {
+    try {
+      const userDeleteResponse: AuthEntities.User = await firstValueFrom(
+        this.RMQ.rpcSend("authService", "auth.user.delete", user)
+      );
+
+      return userDeleteResponse;
+    } catch (error) {
+      return error;
+    }
+  }
+
   companyCreate(
     company: CompaniesDTO.Request.CreateCompany
   ): Observable<CompaniesEntities.Company> {
@@ -35,7 +49,6 @@ export class AuthService {
         company
       );
     } catch (error) {
-      console.log(error);
       return error;
     }
   }

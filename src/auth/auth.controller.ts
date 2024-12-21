@@ -6,6 +6,7 @@ import { CommandBus } from "@nestjs/cqrs";
 import { SagaInvocationError, SagaCompensationError } from "nestjs-saga";
 import { CompanySignUpCommand } from "./sagas";
 import { firstValueFrom } from "rxjs";
+import { Logger } from "shared-functions";
 
 @Controller()
 export class AuthController {
@@ -15,11 +16,13 @@ export class AuthController {
   ) {}
 
   @MessagePattern("coordinator.user.signUp")
+  @Logger("magenta")
   signUp(@Payload() user: AuthDTO.Request.SignUp) {
     return this.service.userCreate(user);
   }
 
   @MessagePattern("coordinator.company.signUp")
+  @Logger("magenta")
   async companySignUp(@Payload() company: AuthDTO.Request.CompanySignUp) {
     try {
       const commandResult = await this.commandBus.execute(

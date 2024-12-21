@@ -30,9 +30,8 @@ export class CompanySignUpSaga {
     .step("User Registration")
     .invoke(async (cmd: CompanySignUpCommand) => {
       const { phone, password } = cmd.data;
-      const createUserResponse: AuthDTO.Response.SignUp = await firstValueFrom(
-        this.service.userCreate({ phone, password })
-      );
+      const createUserResponse: AuthDTO.Response.SignUp =
+        await this.service.userCreate({ phone, password });
 
       if (createUserResponse.error) {
         throw new RpcException(createUserResponse.error);
@@ -48,7 +47,7 @@ export class CompanySignUpSaga {
       const { name, address } = cmd.data;
 
       const createCompanyResponse: CompaniesDTO.Response.CreateCompany =
-        await firstValueFrom(this.service.companyCreate({ name, address }));
+        await this.service.companyCreate({ name, address });
 
       if (createCompanyResponse.error) {
         throw new RpcException(createCompanyResponse.error);

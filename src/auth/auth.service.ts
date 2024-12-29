@@ -16,9 +16,10 @@ export class AuthService {
   @Logger("magenta")
   async userCreate(user: AuthDTO.Request.SignUp): Promise<AuthEntities.User> {
     try {
-      return await firstValueFrom(
+      const response = await firstValueFrom(
         this.RMQ.rpcSend("authService", "auth.user.create", user)
       );
+      return response;
     } catch (error) {
       return error;
     }

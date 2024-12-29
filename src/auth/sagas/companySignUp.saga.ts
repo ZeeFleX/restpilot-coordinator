@@ -29,9 +29,8 @@ export class CompanySignUpSaga {
   saga = new Builder<CompanySignUpCommand, SagaResult>()
     .step("User Registration")
     .invoke(async (cmd: CompanySignUpCommand) => {
-      const { phone, password } = cmd.data;
       const createUserResponse: AuthDTO.Response.SignUp =
-        await this.service.userCreate({ phone, password });
+        await this.service.userCreate({ ...cmd.data, role: "OWNER" });
 
       if (createUserResponse.error) {
         throw new RpcException(createUserResponse.error);
@@ -44,10 +43,11 @@ export class CompanySignUpSaga {
     })
     .step("Company Registration")
     .invoke(async (cmd: CompanySignUpCommand) => {
-      const { name, address } = cmd.data;
-
       const createCompanyResponse: CompaniesDTO.Response.CreateCompany =
-        await this.service.companyCreate({ name, address });
+        await this.service.companyCreate({
+          ...cmd.data,
+          ownerUserId: this.result.user.id,
+        });
 
       if (createCompanyResponse.error) {
         throw new RpcException(createCompanyResponse.error);
